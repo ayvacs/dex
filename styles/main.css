@@ -58,3 +58,36 @@ a {
 
 .tab-focus {
 }
+
+#pokedexTable {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.pokemonRow {
+  display: flex;
+}
+
+.pokedmonColumn {
+  flex: 50%;
+}
+
+.pokedexRow {
+  padding-bottom: 20px;
+}
+
+.pokemonName {
+  font-size: 30px;
+}
+
+.pokemonId {
+  font-size: 20px;
+}
+
+tr {
+  font-size: 30px;
+}
+
+td {
+  text-alignment: center;
+}

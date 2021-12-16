@@ -17,6 +17,8 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Merriweather+Sans&display=swap">
   <link rel="stylesheet" href="styles/main.css">
   <link rel="stylesheet" href="styles/font.css">
+
+  <script src="scripts/json_get.js"></script>
 </head>
 <body>
   <div class="flex-auto">
@@ -39,5 +41,31 @@
       </b></a>
     </nav>
   </div>
+
+  <br>
+
+  <table id="pokedexTable">
+    <tr>
+      <td class="pokedexCell">
+        <div class="pokemonRow">
+          <div class="pokemonColumn" cellType="pokemonArt">
+            <img
+              class="cellArtImage"
+              src="https://via.placeholder.com/150x150.png?text=Placeholder+Image"
+              width="150"
+              height="150"
+            >
+          </div>
+          <div class="pokemonColumn" cellType="lineBreak">
+            <p style="color:#0f1117;">&nbsp;&nbsp;</p>
+          </div>
+          <div class="pokemonColumn" cellType="pokemonData">
+            <b class="pokemonName">Pokemon Name</b><br>
+            <i class="pokemonId">#0000</i>
+          </div>
+        </div>
+      </td>
+    </tr>
+  </table>
 </body>
 </html>
