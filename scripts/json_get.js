@@ -9,6 +9,7 @@ function rebuildFromArray(array, apiData) {
       var className = element.className;
 
       if (className == "pokemonArt") {
+        // Iterates through pok
         dexCount++;
         var trueCount = 0;
         var trueLength = dexCount.toString().length
@@ -21,15 +22,13 @@ function rebuildFromArray(array, apiData) {
           trueCount = dexCount;
         }
 
-        $.get(apiData["baseUrl"] + "pokemon/" + dexCount, function(data) {
-          var pokemonData = [];
-          pokemonData["name"] = data["name"];
-          pokemonData["id"] = trueCount;
-          console.log(pokemonData);
-        });
+        var currentData = $.get(apiData["baseUrl"] + "pokemon/" + dexCount);
+
+        console.log(currentData)
 
 
       } else if (className == "pokemonData") {
+
       } else {
       }
     }
