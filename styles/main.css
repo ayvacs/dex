@@ -68,10 +68,6 @@ a {
   display: flex;
 }
 
-.pokedmonColumn {
-  flex: 50%;
-}
-
 .pokedexRow {
   padding-bottom: 20px;
 }
