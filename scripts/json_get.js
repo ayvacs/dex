@@ -40,25 +40,34 @@ function setJSON(apiData, dexCount, trueCount, element, nationalDexData) {
     dataElement.getElementsByClassName("pokemonId")[0].innerHTML = "#" + trueCount;
 
     // Set types
-    var typesElement = dataElement.getElementsByClassName("pokemonTypes")[0];
+    var metadataElement = dataElement.getElementsByClassName("pokemonMetaData")[0];
     var types = data["types"];
     var typeCount = types["length"];
 
     for (var i = 0; i < typeCount; i++) {
       var type = types[i];
-      var theType = type["type"]
+      var theType = type["type"];
 
-      typesElement.innerHTML = typesElement.innerHTML +
+      metadataElement.innerHTML +=
       capitalizeString(
         removeQuotes(
           JSON.stringify(theType["name"])
         )
-      )
+      );
 
       if (typeCount != 1  &&  i != typeCount - 1) {
-        typesElement.innerHTML = typesElement.innerHTML  + ", "
-      }
+        metadataElement.innerHTML += ", ";
+      };
     };
+
+    // Set evolutions
+    $.get("https://pokeapi.co/api/v2/pokemon-species/" + dexCount).then(function(speData) {
+      $.get(speData["evolution_chain"]["url"]).then(function(evoData) {
+        console.log(evoData)
+        metadataElement.innerHTML += "<br>Species #" + JSON.stringify(evoData.id);
+        //console.log(evoData)
+      });
+    });
 
     //console.log(" » complete!");
   }).fail(function () {

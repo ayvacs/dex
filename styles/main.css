@@ -59,7 +59,7 @@ a {
 
 .tab,
 .tab-focus {
-  color:black;
+  color: black;
 }
 
 .tab-focus {
@@ -86,7 +86,7 @@ a {
   font-size: 20px;
 }
 
-.pokemonTypes {
+.pokemonMetaData {
   font-size: 20px;
 }
 
