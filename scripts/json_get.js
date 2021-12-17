@@ -1,16 +1,35 @@
+var HTMLConfig = {
+  "dex": {
+    "columnCount": 3
+  }
+}
+
+
+function capitalizeString(string) {
+  return string.replace(/^\w/, (c) => c.toUpperCase());
+};
+
+function removeQuotes(string) {
+  return string.replace(/['"]+/g, '');
+};
+
+
 function setJSON(apiData, dexCount, trueCount, element, nationalDexData) {
   var currentUrl = apiData["baseUrl"] + "pokemon/" + dexCount;
 
   // check if URL exists
   $.get(currentUrl).done(function (data) {
-    var trueName = data["name"].replace(/^\w/, (c) => c.toUpperCase());
+    var trueName = capitalizeString(data["name"]);
 
+    /*
 
     console.log(
       "(" + trueCount + "/" +
       nationalDexData["pokemon_entries"]["length"] +
       ") Generating info for " + trueName
     );
+
+    */
 
     var artElement = element.getElementsByClassName("pokemonArt")[0];
     var cellArtImage = artElement.getElementsByClassName("cellArtImage")[0];
@@ -19,6 +38,29 @@ function setJSON(apiData, dexCount, trueCount, element, nationalDexData) {
     var dataElement = element.getElementsByClassName("pokemonData")[0];
     dataElement.getElementsByClassName("pokemonName")[0].innerHTML = trueName;
     dataElement.getElementsByClassName("pokemonId")[0].innerHTML = "#" + trueCount;
+
+    // Set types
+    var typesElement = dataElement.getElementsByClassName("pokemonTypes")[0];
+    var types = data["types"];
+    var typeCount = types["length"];
+
+    for (var i = 0; i < typeCount; i++) {
+      var type = types[i];
+      var theType = type["type"]
+
+      typesElement.innerHTML = typesElement.innerHTML +
+      capitalizeString(
+        removeQuotes(
+          JSON.stringify(theType["name"])
+        )
+      )
+
+      if (typeCount != 1  &&  i != typeCount - 1) {
+        typesElement.innerHTML = typesElement.innerHTML  + ", "
+      }
+    };
+
+    //console.log(" » complete!");
   }).fail(function () {
     //console.log(trueCount + " does not exist");
   });
@@ -34,6 +76,12 @@ $.get("api/api_data.json").then(function(apiData) {
     var pokedexLength = nationalDexData["pokemon_entries"]["length"];
     var repeatRows = Math.ceil(pokedexLength / 3);
 
+    // Create columns
+    for (var i = 0; i < HTMLConfig["dex"]["columnCount"] - 1; i++) {
+      var cl = document.getElementsByClassName("pokedexCell")[0].cloneNode(true);
+      document.getElementsByClassName("pokedexRow")[0].appendChild(cl);
+    }
+
     var tr = document.getElementsByClassName("pokedexRow")[0];
 
     for (var i = 0; i < repeatRows - 1; i++) {
@@ -42,7 +90,7 @@ $.get("api/api_data.json").then(function(apiData) {
     }
 
 
-    // Rebuild HTML dex
+    // Create rows
     var dexCount = 0;
 
     var array = document.getElementById("pokedexTable");
