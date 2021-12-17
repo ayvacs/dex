@@ -47,5 +47,20 @@ JSONget("api/api_data.json").then(function(apiData) {
   // JSON Data is stored in "apiData" variable
   // console.log(apiData);
 
-  rebuildAllDex(apiData);
+
+
+  JSONget("https://pokeapi.co/api/v2/pokedex/1/").then(function(data) {
+    var pokedexLength = data["pokemon_entries"]["length"];
+    var repeatRows = Math.ceil(pokedexLength / 3);
+    console.log(repeatRows);
+
+    var tr = document.getElementsByClassName("pokedexRow")[0];
+
+    for (var i = 0; i < repeatRows - 1; i++) {
+      var cl = tr.cloneNode(true);
+      document.getElementById("pokedexTableBody").appendChild(cl);
+    }
+
+    rebuildAllDex(apiData);
+  });
 });
