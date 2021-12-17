@@ -80,6 +80,10 @@ a {
   font-size: 20px;
 }
 
+.pokemonData {
+  width: 200px;
+}
+
 tr {
   font-size: 30px;
 }
