@@ -1,37 +1,38 @@
-function rebuildFromArray(array, apiData) {
+async function setJSON(apiData, dexCount, trueCount, element) {
+  $.getJSON(apiData["baseUrl"] + "pokemon/" + dexCount, function(data) {
+    var artElement = element.getElementsByClassName("pokemonArt")[0];
+    var cellArtImage = artElement.getElementsByClassName("cellArtImage")[0];
+    cellArtImage.src = data["sprites"]["front_default"];
+
+    var dataElement = element.getElementsByClassName("pokemonData")[0];
+    dataElement.getElementsByClassName("pokemonName")[0].innerHTML = data["name"].replace(/^\w/, (c) => c.toUpperCase());
+    dataElement.getElementsByClassName("pokemonId")[0].innerHTML = "#" + trueCount;
+  });
+}
+
+
+async function rebuildAllDex(apiData) {
   var dexCount = 0;
-  for (var i = 0; i < array.length; i++) {
-    var type = array[i];
 
-    var elements = document.getElementsByClassName(type);
-    for (var y = 0; y < elements.length; y++) {
-      var element = elements[y];
-      var className = element.className;
+  var array = document.getElementById("pokedexTable");
+  var elements = array.getElementsByClassName("pokemonRow");
 
-      if (className == "pokemonArt") {
-        // Iterates through pok
-        dexCount++;
-        var trueCount = 0;
-        var trueLength = dexCount.toString().length
+  for (var i = 0; i < elements.length; i++) {
+    var element = elements[i]
+    dexCount++;
 
-        if (trueLength == 1) {
-          var trueCount = "00" + dexCount;
-        } else if (trueLength == 2) {
-          trueCount = "0" + dexCount;
-        } else {
-          trueCount = dexCount;
-        }
+    var trueCount = 0;
+    var trueLength = dexCount.toString().length
 
-        var currentData = $.get(apiData["baseUrl"] + "pokemon/" + dexCount);
-
-        console.log(currentData)
-
-
-      } else if (className == "pokemonData") {
-
-      } else {
-      }
+    if (trueLength == 1) {
+      var trueCount = "00" + dexCount;
+    } else if (trueLength == 2) {
+      trueCount = "0" + dexCount;
+    } else {
+      trueCount = dexCount;
     }
+
+    await setJSON(apiData, dexCount, trueCount, element);
   }
 }
 
@@ -46,5 +47,5 @@ JSONget("api/api_data.json").then(function(apiData) {
   // JSON Data is stored in "apiData" variable
   // console.log(apiData);
 
-  rebuildFromArray(["pokemonArt", "pokemonData"], apiData);
+  rebuildAllDex(apiData);
 });
