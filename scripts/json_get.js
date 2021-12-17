@@ -4,7 +4,6 @@ var HTMLConfig = {
   }
 }
 
-
 function capitalizeString(string) {
   return string.replace(/^\w/, (c) => c.toUpperCase());
 };
@@ -63,9 +62,7 @@ function setJSON(apiData, dexCount, trueCount, element, nationalDexData) {
     // Set evolutions
     $.get("https://pokeapi.co/api/v2/pokemon-species/" + dexCount).then(function(speData) {
       $.get(speData["evolution_chain"]["url"]).then(function(evoData) {
-        console.log(evoData)
         metadataElement.innerHTML += "<br>Species #" + JSON.stringify(evoData.id);
-        //console.log(evoData)
       });
     });
 

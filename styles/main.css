@@ -48,7 +48,7 @@ a {
   background: rgb(255, 255, 255);
   background: linear-gradient(
     180deg, rgba(255, 255, 255, 1) 0%, rgba(180, 180, 180, 1) 100%
-    );
+  );
 }
 
 .tab-bar-top,
@@ -60,9 +60,11 @@ a {
 .tab,
 .tab-focus {
   color: black;
+  font-weight: bold;
 }
 
 .tab-focus {
+  text-decoration: underline;
 }
 
 #pokedexTable {
