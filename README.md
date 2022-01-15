@@ -1,4 +1,4 @@
-<h1><img src="https://raw.githubusercontent.com/frogweezer/dex.js.org/gh-pages/favicon.png" height=31px/> Pokédex Online</h1>
+<h1><img src="https://raw.githubusercontent.com/ayvacs/dex.js.org/gh-pages/favicon.png" height=31px/> Pokédex Online</h1>
 
 An online Global Pokédex
 
