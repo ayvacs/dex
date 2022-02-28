@@ -11,8 +11,8 @@ function removeQuotes(string) {
 };
 
 
-function setJSON(apiData, dexCount, trueCount, element, nationalDexData) {
-    var currentUrl = apiData.baseUrl + "pokemon/" + dexCount;
+function setJSON(dexCount, trueCount, element, nationalDexData) {
+    var currentUrl =  "https://pokeapi.co/api/v2/pokemon/" + dexCount;
 
     // check if URL exists
     $.get(currentUrl).done(function (data) {
@@ -71,51 +71,45 @@ function setJSON(apiData, dexCount, trueCount, element, nationalDexData) {
 }
 
 
-$.get("api/api_data.json").then(function (apiData) {
-    // JSON Data is stored in "apiData" variable
+$.get("https://pokeapi.co/api/v2/pokedex/1").then(function (nationalDexData) {
+    var pokedexLength = nationalDexData.pokemon_entries.length;
+    var repeatRows = Math.ceil(pokedexLength / 3);
+
+    // Create columns
+    for (var i = 0; i < Config.columnCount - 1; i++) {
+        var cl = document.getElementsByClassName("pokedexCell")[0].cloneNode(true);
+        document.getElementsByClassName("pokedexRow")[0].appendChild(cl);
+    }
+
+    var tr = document.getElementsByClassName("pokedexRow")[0];
+
+    for (var i = 0; i < repeatRows - 1; i++) {
+        var cl = tr.cloneNode(true);
+        document.getElementById("pokedexTableBody").appendChild(cl);
+    }
 
 
-    // Get national dex info to fill info for all pokemon
-    $.get("https://pokeapi.co/api/v2/pokedex/1").then(function (nationalDexData) {
-        var pokedexLength = nationalDexData.pokemon_entries.length;
-        var repeatRows = Math.ceil(pokedexLength / 3);
+    // Create rows
+    var dexCount = 0;
 
-        // Create columns
-        for (var i = 0; i < Config.columnCount - 1; i++) {
-            var cl = document.getElementsByClassName("pokedexCell")[0].cloneNode(true);
-            document.getElementsByClassName("pokedexRow")[0].appendChild(cl);
+    var array = document.getElementById("pokedexTable");
+    var elements = array.getElementsByClassName("pokemonRow");
+
+    for (var i = 0; i < elements.length; i++) {
+        var element = elements[i]
+        dexCount++;
+
+        var trueCount = 0;
+        var trueLength = dexCount.toString().length
+
+        if (trueLength == 1) {
+            var trueCount = "00" + dexCount;
+        } else if (trueLength == 2) {
+            trueCount = "0" + dexCount;
+        } else {
+            trueCount = dexCount;
         }
 
-        var tr = document.getElementsByClassName("pokedexRow")[0];
-
-        for (var i = 0; i < repeatRows - 1; i++) {
-            var cl = tr.cloneNode(true);
-            document.getElementById("pokedexTableBody").appendChild(cl);
-        }
-
-
-        // Create rows
-        var dexCount = 0;
-
-        var array = document.getElementById("pokedexTable");
-        var elements = array.getElementsByClassName("pokemonRow");
-
-        for (var i = 0; i < elements.length; i++) {
-            var element = elements[i]
-            dexCount++;
-
-            var trueCount = 0;
-            var trueLength = dexCount.toString().length
-
-            if (trueLength == 1) {
-                var trueCount = "00" + dexCount;
-            } else if (trueLength == 2) {
-                trueCount = "0" + dexCount;
-            } else {
-                trueCount = dexCount;
-            }
-
-            setJSON(apiData, dexCount, trueCount, element, nationalDexData);
-        };
-    });
+        setJSON(dexCount, trueCount, element, nationalDexData);
+    };
 });
