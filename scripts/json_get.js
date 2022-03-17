@@ -1,13 +1,11 @@
-var Config = {
-    "columnCount": 3
-}
+var CONFIG_columnCount = 3
 
-function capitalizeString(string) {
-    return string.replace(/^\w/, (c) => c.toUpperCase());
+function capitalizeString(s) {
+    return s.replace(/^\w/, (c) => c.toUpperCase());
 };
 
-function removeQuotes(string) {
-    return string.replace(/['"]+/g, '');
+function removeQuotes(s) {
+    return s.replace(/['"]+/g, '');
 };
 
 
@@ -76,7 +74,7 @@ $.get("https://pokeapi.co/api/v2/pokedex/1").then(function (nationalDexData) {
     var repeatRows = Math.ceil(pokedexLength / 3);
 
     // Create columns
-    for (var i = 0; i < Config.columnCount - 1; i++) {
+    for (var i = 0; i < CONFIG_columnCount - 1; i++) {
         var cl = document.getElementsByClassName("pokedexCell")[0].cloneNode(true);
         document.getElementsByClassName("pokedexRow")[0].appendChild(cl);
     }
