@@ -15,7 +15,13 @@ import "./TopBar.css";
 // Constants
 // ==============================
 
-const NAV_ITEMS = [
+interface NavItem {
+    label: string;
+    href: string;
+    newTab?: boolean;
+}
+
+const NAV_ITEMS: NavItem[] = [
     { label: "Pokédex", href: "/" },
     { label: "Source Code", href: "https://github.com/ayvacs/dex", newTab: true },
     { label: "PokéAPI", href: "https://pokeapi.co/v2#", newTab: true }
@@ -42,13 +48,13 @@ export function TopBar() {
 
             {/* Topbar Band 3 (White) */}
             <nav aria-label="Primary" className="topbar-band topbar-band-light gap-2.5">
-                {NAV_ITEMS.map(({ label, href, newTab }) => (
+                {NAV_ITEMS.map((item) => (
                     <Link
-                        target={newTab ? "_blank" : undefined}
-                        key={href}
-                        href={href}
-                        className={`topbar-link ${pathname === href ? "underline" : "no-underline hover:underline"}`}>
-                            {label}
+                        target={item.newTab ? "_blank" : undefined}
+                        key={item.href}
+                        href={item.href}
+                        className={`topbar-link ${pathname === item.href ? "underline" : "no-underline hover:underline"}`}>
+                            {item.label}
                     </Link>
                 ))}
             </nav>
