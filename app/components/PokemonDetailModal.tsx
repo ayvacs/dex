@@ -6,7 +6,9 @@
 // ==============================
 
 import { useEffect, useState } from "react";
+import { PokemonSprite } from "./PokemonSprite";
 import {
+    IMAGE_SIZE_PX,
     type PokemonDetail,
     type PokemonItem,
     fetchPokemonDetail,
@@ -44,6 +46,26 @@ export function PokemonDetailModal({
     const [detail, setDetail] = useState<PokemonDetail | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [isShiny, setIsShiny] = useState(false);
+    const [fontsReady, setFontsReady] = useState(
+        () =>
+            typeof document === "undefined" ||
+            !document.fonts ||
+            document.fonts.status === "loaded"
+    );
+
+    // Wait for web fonts to finish loading before revealing the card.
+    useEffect(() => {
+        if (fontsReady) return;
+        let isCancelled = false;
+        document.fonts.ready.then(() => {
+            if (!isCancelled) {
+                setFontsReady(true);
+            }
+        });
+        return () => {
+            isCancelled = true;
+        };
+    }, [fontsReady]);
 
     useEffect(() => {
         let isCancelled = false;
@@ -76,10 +98,11 @@ export function PokemonDetailModal({
     }, [onClose]);
 
     const primaryStyle = getTypeStyle(pokemon.types[0]);
-    const displayImage =
-        isShiny && detail?.shinyArtworkUrl
+    const displayImage = detail
+        ? isShiny && detail.shinyArtworkUrl
             ? detail.shinyArtworkUrl
-            : (detail?.artworkUrl ?? pokemon.imageUrl);
+            : detail.artworkUrl
+        : null;
     const evYield = detail?.stats.filter((s) => s.effort > 0) ?? [];
 
     function playCry() {
@@ -87,6 +110,10 @@ export function PokemonDetailModal({
         const audio = new Audio(detail.cryUrl);
         audio.volume = 0.35;
         audio.play().catch(() => {});
+    }
+
+    if (!fontsReady) {
+        return null;
     }
 
     return (
@@ -106,8 +133,16 @@ export function PokemonDetailModal({
                     className="relative px-5 pt-4 pb-3">
                     <div className="flex items-start justify-between gap-2">
                         <div className="flex flex-wrap items-center gap-2 text-xs font-semibold opacity-75">
-                            <span>#{String(pokemon.dexNumber).padStart(4, "0")}</span>
-                            {detail?.genus && <span>· {detail.genus}</span>}
+                            <span>
+                                #{String(pokemon.dexNumber).padStart(4, "0")}
+                                {detail?.genus ? `\u00A0\u00A0\u00A0·\u00A0\u00A0\u00A0${detail.genus}` : ""}
+                            </span>
+                            {!detail && !error && (
+                                <span
+                                    aria-hidden="true"
+                                    className="inline-block h-3.5 w-24 animate-pulse rounded bg-black/15 dark:bg-white/15"
+                                />
+                            )}
                             {detail?.isLegendary && (
                                 <span className="rounded bg-amber-500/20 px-1.5 py-0.5 text-[10px] text-amber-600 dark:text-amber-300">
                                     Legendary
@@ -134,15 +169,21 @@ export function PokemonDetailModal({
                     </div>
 
                     <div className="mt-2 flex items-center gap-4">
-                        <div className="relative flex h-24 w-24 shrink-0 items-center justify-center">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img
-                                src={displayImage}
-                                alt={pokemon.name}
-                                width={96}
-                                height={96}
-                                className="h-24 w-24 object-contain"
-                            />
+                        <div
+                            style={{ width: IMAGE_SIZE_PX, height: IMAGE_SIZE_PX }}
+                            className="relative flex shrink-0 items-center justify-center">
+                            {displayImage ? (
+                                <PokemonSprite
+                                    key={displayImage}
+                                    src={displayImage}
+                                    alt={pokemon.name}
+                                />
+                            ) : (
+                                <div
+                                    aria-hidden="true"
+                                    className="h-full w-full animate-pulse rounded-md bg-neutral-200 dark:bg-neutral-800"
+                                />
+                            )}
                         </div>
                         <div className="min-w-0 flex-1">
                             <h2 className="text-xl font-bold capitalize">{pokemon.name}</h2>
@@ -162,7 +203,7 @@ export function PokemonDetailModal({
                                     );
                                 })}
                             </div>
-                            {detail && (
+                            {detail ? (
                                 <div className="mt-2 flex gap-2">
                                     {detail.shinyArtworkUrl && (
                                         <button
@@ -185,6 +226,13 @@ export function PokemonDetailModal({
                                         </button>
                                     )}
                                 </div>
+                            ) : (
+                                !error && (
+                                    <div aria-hidden="true" className="mt-2 flex animate-pulse gap-2">
+                                        <div className="h-5 w-16 rounded-md bg-black/10 dark:bg-white/10" />
+                                        <div className="h-5 w-12 rounded-md bg-black/10 dark:bg-white/10" />
+                                    </div>
+                                )
                             )}
                         </div>
                     </div>
@@ -195,13 +243,48 @@ export function PokemonDetailModal({
                     {error && <p className="text-red-500">{error}</p>}
 
                     {!detail && !error && (
-                        <div className="animate-pulse space-y-2.5">
-                            <div className="h-8 rounded bg-neutral-200 dark:bg-neutral-800" />
-                            <div className="grid grid-cols-2 gap-2">
-                                <div className="h-10 rounded bg-neutral-200 dark:bg-neutral-800" />
-                                <div className="h-10 rounded bg-neutral-200 dark:bg-neutral-800" />
+                        <div aria-busy="true" aria-label="Loading details" className="animate-pulse space-y-3">
+                            {/* Flavor text placeholder */}
+                            <div className="space-y-1.5">
+                                <div className="h-3.5 w-full rounded bg-neutral-200 dark:bg-neutral-800" />
+                                <div className="h-3.5 w-4/5 rounded bg-neutral-200 dark:bg-neutral-800" />
                             </div>
-                            <div className="h-24 rounded bg-neutral-200 dark:bg-neutral-800" />
+
+                            {/* Quick facts 2x3 grid placeholder */}
+                            <div className="grid grid-cols-2 gap-2 rounded-xl bg-neutral-100 p-3 dark:bg-neutral-900">
+                                {Array.from({ length: 6 }, (_, idx) => (
+                                    <div key={idx} className="space-y-1">
+                                        <div className="h-3 w-16 rounded bg-neutral-200 dark:bg-neutral-800" />
+                                        <div className="h-3.5 w-24 rounded bg-neutral-200 dark:bg-neutral-800" />
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* Abilities placeholder */}
+                            <div>
+                                <div className="mb-1 h-3.5 w-14 rounded bg-neutral-200 dark:bg-neutral-800" />
+                                <div className="flex flex-wrap gap-1.5">
+                                    <div className="h-6 w-20 rounded-md bg-neutral-200 dark:bg-neutral-800" />
+                                    <div className="h-6 w-28 rounded-md bg-neutral-200 dark:bg-neutral-800" />
+                                </div>
+                            </div>
+
+                            {/* Base stats 6-row placeholder */}
+                            <div>
+                                <div className="mb-1.5 flex items-center justify-between">
+                                    <div className="h-3.5 w-16 rounded bg-neutral-200 dark:bg-neutral-800" />
+                                    <div className="h-3.5 w-12 rounded bg-neutral-200 dark:bg-neutral-800" />
+                                </div>
+                                <div className="space-y-1">
+                                    {Array.from({ length: 6 }, (_, idx) => (
+                                        <div key={idx} className="flex items-center gap-2">
+                                            <div className="h-3.5 w-8 rounded bg-neutral-200 dark:bg-neutral-800" />
+                                            <div className="h-3.5 w-7 rounded bg-neutral-200 dark:bg-neutral-800" />
+                                            <div className="h-1.5 flex-1 rounded-full bg-neutral-200 dark:bg-neutral-800" />
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
                         </div>
                     )}
 
