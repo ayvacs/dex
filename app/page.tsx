@@ -1,8 +1,9 @@
+import { Pokedex } from "./components/Pokedex";
+
 export default function Home() {
     return (
-        <div id="main">
-            <h1>Dex</h1>
-            <p>Welcome.</p>
+        <div id="main" className="w-full">
+            <Pokedex rows={5} />
         </div>
     );
 }
