@@ -17,7 +17,8 @@ import "./TopBar.css";
 
 const NAV_ITEMS = [
     { label: "Pokédex", href: "/" },
-    { label: "About", href: "/about" },
+    { label: "Source Code", href: "https://github.com/ayvacs/dex", newTab: true },
+    { label: "PokéAPI", href: "https://pokeapi.co/v2#", newTab: true }
 ] as const;
 
 
@@ -41,8 +42,9 @@ export function TopBar() {
 
             {/* Topbar Band 3 (White) */}
             <nav aria-label="Primary" className="topbar-band topbar-band-light gap-2.5">
-                {NAV_ITEMS.map(({ label, href }) => (
+                {NAV_ITEMS.map(({ label, href, newTab }) => (
                     <Link
+                        target={newTab ? "_blank" : undefined}
                         key={href}
                         href={href}
                         className={`topbar-link ${pathname === href ? "underline" : "no-underline hover:underline"}`}>

@@ -1,12 +1,15 @@
-// Index page
+// Main Pokédex index page
 
 
-import { Pokedex } from "./components/Pokedex";
+import { Suspense } from "react";
+import { Pokedex, PokedexSkeleton } from "./components/Pokedex";
 
 export default function Home() {
     return (
         <div id="main" className="w-full">
-            <Pokedex />
+            <Suspense fallback={<PokedexSkeleton />}>
+                <Pokedex />
+            </Suspense>
         </div>
     );
 }
