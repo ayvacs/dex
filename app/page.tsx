@@ -1,3 +1,6 @@
+// Index page
+
+
 import { Pokedex } from "./components/Pokedex";
 
 export default function Home() {

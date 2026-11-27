@@ -1,4 +1,5 @@
 "use client";
+// Top bar with navigation links
 
 
 // ==============================
@@ -44,9 +45,8 @@ export function TopBar() {
                     <Link
                         key={href}
                         href={href}
-                        className={`topbar-link ${pathname === href ? "underline" : "no-underline hover:underline"}`}
-                    >
-                        {label}
+                        className={`topbar-link ${pathname === href ? "underline" : "no-underline hover:underline"}`}>
+                            {label}
                     </Link>
                 ))}
             </nav>

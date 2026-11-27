@@ -1,100 +1,27 @@
 "use client";
+// Main Pokedex grid
 
 
 // ==============================
 // Imports
 // ==============================
 
-import { Suspense, use, useEffect, useRef, useState } from "react";
-
-
-// ==============================
-// Constants
-// ==============================
-
-const POKEDEX_URL = "https://pokeapi.co/api/v2/pokedex/1/";
-const TYPE_LIST_URL = "https://pokeapi.co/api/v2/type/";
-const IMAGE_SIZE_PX = 96;
-const SKELETON_ROWS = 4;
+import { useEffect, useRef, useState } from "react";
+import {
+    IMAGE_SIZE_PX,
+    type PokedexLoadResult,
+    type PokemonItem,
+    SKELETON_ROWS,
+    getPokedexPromise,
+    getTypeStyle,
+} from "./pokedexData";
 
 
 // ==============================
 // Types
 // ==============================
 
-interface TypeStyle {
-    badgeBg: string;
-    badgeText: string;
-    cardBg: string;
-}
-
-const TYPE_STYLES: Record<string, TypeStyle> = {
-    normal: { badgeBg: "#6b6b56", badgeText: "#ffffff", cardBg: "rgba(107, 107, 86, 0.16)" },
-    fire: { badgeBg: "#b8402e", badgeText: "#ffffff", cardBg: "rgba(184, 64, 46, 0.16)" },
-    water: { badgeBg: "#3566b8", badgeText: "#ffffff", cardBg: "rgba(53, 102, 184, 0.16)" },
-    electric: { badgeBg: "#a68216", badgeText: "#ffffff", cardBg: "rgba(166, 130, 22, 0.16)" },
-    grass: { badgeBg: "#427d32", badgeText: "#ffffff", cardBg: "rgba(66, 125, 50, 0.16)" },
-    ice: { badgeBg: "#4a8f96", badgeText: "#ffffff", cardBg: "rgba(74, 143, 150, 0.16)" },
-    fighting: { badgeBg: "#8c2d23", badgeText: "#ffffff", cardBg: "rgba(140, 45, 35, 0.16)" },
-    poison: { badgeBg: "#7a367c", badgeText: "#ffffff", cardBg: "rgba(122, 54, 124, 0.16)" },
-    ground: { badgeBg: "#997736", badgeText: "#ffffff", cardBg: "rgba(153, 119, 54, 0.16)" },
-    flying: { badgeBg: "#645ca8", badgeText: "#ffffff", cardBg: "rgba(100, 92, 168, 0.16)" },
-    psychic: { badgeBg: "#b03a62", badgeText: "#ffffff", cardBg: "rgba(176, 58, 98, 0.16)" },
-    bug: { badgeBg: "#6d7d22", badgeText: "#ffffff", cardBg: "rgba(109, 125, 34, 0.16)" },
-    rock: { badgeBg: "#827136", badgeText: "#ffffff", cardBg: "rgba(130, 113, 54, 0.16)" },
-    ghost: { badgeBg: "#503d70", badgeText: "#ffffff", cardBg: "rgba(80, 61, 112, 0.18)" },
-    dragon: { badgeBg: "#4e32a8", badgeText: "#ffffff", cardBg: "rgba(78, 50, 168, 0.16)" },
-    dark: { badgeBg: "#4d3e35", badgeText: "#ffffff", cardBg: "rgba(77, 62, 53, 0.2)" },
-    steel: { badgeBg: "#646b7a", badgeText: "#ffffff", cardBg: "rgba(100, 107, 122, 0.16)" },
-    fairy: { badgeBg: "#a3567a", badgeText: "#ffffff", cardBg: "rgba(163, 86, 122, 0.16)" },
-};
-
-interface TypeListResponse {
-    results: Array<{
-        name: string;
-        url: string;
-    }>;
-}
-
-interface PokemonSpeciesRef {
-    name: string;
-    url: string;
-}
-
-interface PokedexEntry {
-    entry_number: number;
-    pokemon_species: PokemonSpeciesRef;
-}
-
-interface PokedexApiResponse {
-    pokemon_entries: PokedexEntry[];
-}
-
-interface TypePokemonEntry {
-    slot: number;
-    pokemon: {
-        name: string;
-        url: string;
-    };
-}
-
-interface TypeApiResponse {
-    name: string;
-    pokemon: TypePokemonEntry[];
-}
-
-interface PokemonItem {
-    dexNumber: number;
-    name: string;
-    imageUrl: string;
-    types: string[];
-}
-
-interface PokedexLoadResult {
-    items: PokemonItem[];
-    error: string | null;
-}
-
+// Properties for the grid component (can be customzied at the bottom of this file)
 export interface PokedexProps {
     columns?: number;
     className?: string;
@@ -102,138 +29,15 @@ export interface PokedexProps {
 
 
 // ==============================
-// Helpers
-// ==============================
-
-function extractIdFromUrl(url: string): string | undefined {
-    return url.split("/").filter(Boolean).pop();
-}
-
-function getSpriteUrl(speciesId: string): string {
-    return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${speciesId}.png`;
-}
-
-function hashString(value: string): number {
-    let hash = 2166136261;
-    for (let i = 0; i < value.length; i++) {
-        hash ^= value.charCodeAt(i);
-        hash = Math.imul(hash, 16777619);
-    }
-    return hash >>> 0;
-}
-
-function getTypeStyle(typeName?: string): TypeStyle {
-    if (!typeName) {
-        return {
-            badgeBg: "hsl(220 10% 38%)",
-            badgeText: "#ffffff",
-            cardBg: "hsl(220 10% 45% / 0.12)",
-        };
-    }
-
-    const mapped = TYPE_STYLES[typeName.toLowerCase()];
-    if (mapped) {
-        return mapped;
-    }
-
-    const hue = hashString(typeName) % 360;
-    return {
-        badgeBg: `hsl(${hue} 45% 36%)`,
-        badgeText: "#ffffff",
-        cardBg: `hsl(${hue} 45% 45% / 0.16)`,
-    };
-}
-
-async function fetchTypesByPokemonId(): Promise<Map<string, string[]>> {
-    const listResponse = await fetch(TYPE_LIST_URL, { method: "GET" });
-    if (!listResponse.ok) {
-        throw new Error(`Failed to fetch type list (${listResponse.status})`);
-    }
-    const typeList: TypeListResponse = await listResponse.json();
-
-    const typeResponses = await Promise.all(
-        (typeList.results ?? []).map(async ({ name, url }) => {
-            const response = await fetch(url, { method: "GET" });
-            if (!response.ok) {
-                throw new Error(`Failed to fetch type ${name} (${response.status})`);
-            }
-            return (await response.json()) as TypeApiResponse;
-        })
-    );
-
-    const slotMap = new Map<string, Array<{ slot: number; type: string }>>();
-
-    for (const typeData of typeResponses) {
-        for (const entry of typeData.pokemon ?? []) {
-            const id = extractIdFromUrl(entry.pokemon.url);
-            if (!id) continue;
-            const list = slotMap.get(id) ?? [];
-            list.push({ slot: entry.slot, type: typeData.name });
-            slotMap.set(id, list);
-        }
-    }
-
-    const result = new Map<string, string[]>();
-    for (const [id, entries] of slotMap) {
-        entries.sort((a, b) => a.slot - b.slot);
-        result.set(
-            id,
-            entries.map((e) => e.type)
-        );
-    }
-    return result;
-}
-
-async function fetchPokedex(): Promise<PokedexLoadResult> {
-    try {
-        const [pokedexResponse, typesById] = await Promise.all([
-            fetch(POKEDEX_URL, { method: "GET" }),
-            fetchTypesByPokemonId(),
-        ]);
-
-        if (!pokedexResponse.ok) {
-            throw new Error(`Failed to fetch Pokédex (${pokedexResponse.status})`);
-        }
-
-        const data: PokedexApiResponse = await pokedexResponse.json();
-        const items: PokemonItem[] = (data.pokemon_entries ?? []).map((entry) => {
-            const speciesId =
-                extractIdFromUrl(entry.pokemon_species.url) ?? String(entry.entry_number);
-            return {
-                dexNumber: entry.entry_number,
-                name: entry.pokemon_species.name,
-                imageUrl: getSpriteUrl(speciesId),
-                types: typesById.get(speciesId) ?? [],
-            };
-        });
-        return { items, error: null };
-    } catch (err) {
-        console.error(err);
-        return {
-            items: [],
-            error: err instanceof Error ? err.message : "Failed to load Pokédex",
-        };
-    }
-}
-
-let pokedexPromise: Promise<PokedexLoadResult> | null = null;
-
-function getPokedexPromise(): Promise<PokedexLoadResult> {
-    if (!pokedexPromise) {
-        pokedexPromise = fetchPokedex();
-    }
-    return pokedexPromise;
-}
-
-
-// ==============================
 // Subcomponents
 // ==============================
 
+// Renders a pokemon sprite with an animated pulse placeholder until loaded
 function PokemonSprite({ src, alt }: { src: string; alt: string }) {
     const [status, setStatus] = useState<"loading" | "loaded" | "error">("loading");
     const imgRef = useRef<HTMLImageElement | null>(null);
 
+    // Handle images already cached in memory before React attached `onLoad`.
     useEffect(() => {
         const img = imgRef.current;
         if (img && img.complete && img.naturalWidth > 0) {
@@ -265,6 +69,7 @@ function PokemonSprite({ src, alt }: { src: string; alt: string }) {
                     width: IMAGE_SIZE_PX,
                     height: IMAGE_SIZE_PX,
                 }}
+                // text-transparent hides browser alt-text while the sprite is still downloading
                 className={`block shrink-0 object-contain text-transparent transition-opacity duration-200 ${
                     status === "loaded" ? "opacity-100" : "opacity-0"
                 }`}
@@ -273,6 +78,7 @@ function PokemonSprite({ src, alt }: { src: string; alt: string }) {
     );
 }
 
+// Animated placeholder table shown by Suspense while the Pokédex API data loads
 function PokedexSkeleton({ columns, className }: { columns: number; className: string }) {
     return (
         <table
@@ -306,13 +112,16 @@ function PokedexSkeleton({ columns, className }: { columns: number; className: s
     );
 }
 
-function PokedexTable({ columns, className }: { columns: number; className: string }) {
-    const { items: pokemon, error } = use(getPokedexPromise());
-
-    if (error) {
-        return <p className="p-4 text-center text-sm text-red-600">{error}</p>;
-    }
-
+// Renders the full-width invisible grid table for loaded Pokédex entries
+function PokedexTable({
+    pokemon,
+    columns,
+    className,
+}: {
+    pokemon: PokemonItem[];
+    columns: number;
+    className: string;
+}) {
     const rowCount = Math.ceil(pokemon.length / columns);
 
     return (
@@ -374,15 +183,34 @@ function PokedexTable({ columns, className }: { columns: number; className: stri
 // Component Definition
 // ==============================
 
+// Displays the National Pokédex in an invisible table, fetching on the client
 export function Pokedex({
     columns = 6,
     className = "",
 }: PokedexProps) {
     const safeColumns = Math.max(1, Math.floor(columns));
+    const [result, setResult] = useState<PokedexLoadResult | null>(null);
 
-    return (
-        <Suspense fallback={<PokedexSkeleton columns={safeColumns} className={className} />}>
-            <PokedexTable columns={safeColumns} className={className} />
-        </Suspense>
-    );
+    // Fetch only in the browser so Next.js static prerendering never triggers uncached `fetch()`.
+    useEffect(() => {
+        let isCancelled = false;
+        getPokedexPromise().then((data) => {
+            if (!isCancelled) {
+                setResult(data);
+            }
+        });
+        return () => {
+            isCancelled = true;
+        };
+    }, []);
+
+    if (!result) {
+        return <PokedexSkeleton columns={safeColumns} className={className} />;
+    }
+
+    if (result.error) {
+        return <p className="p-4 text-center text-sm text-red-600">{result.error}</p>;
+    }
+
+    return <PokedexTable pokemon={result.items} columns={safeColumns} className={className} />;
 }

@@ -1,3 +1,7 @@
+// Root application layout
+// Defines fonts, css, and adds the topbar to every page
+
+
 // ==============================
 // Imports
 // ==============================
@@ -22,8 +26,8 @@ const merriweatherSans = Merriweather_Sans({
 // ==============================
 
 export const metadata: Metadata = {
-    title: "dex",
-    description: "no description yet",
+    title: "Pokédex Online",
+    description: "An informative Pokédex viewer",
 };
 
 
