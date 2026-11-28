@@ -25,9 +25,16 @@ const merriweatherSans = Merriweather_Sans({
 // Metadata
 // ==============================
 
+const basePath =
+    process.env.PAGES_EXPORT === "true" ? (process.env.PAGES_BASE_PATH ?? "") : "";
+
 export const metadata: Metadata = {
     title: "Pokédex Online",
     description: "An informative Pokédex viewer",
+    icons: {
+        icon: `${basePath}/favicon.ico`,
+        apple: `${basePath}/favicon.png`,
+    },
 };
 
 
