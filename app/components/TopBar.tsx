@@ -22,9 +22,9 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-    { label: "Pokédex", href: "/" },
+    { label: "Pokédex",     href: "/"                                           },
     { label: "Source Code", href: "https://github.com/ayvacs/dex", newTab: true },
-    { label: "PokéAPI", href: "https://pokeapi.co/v2#", newTab: true }
+    { label: "PokéAPI",     href: "https://pokeapi.co/v2#",        newTab: true }
 ] as const;
 
 

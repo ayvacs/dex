@@ -50,7 +50,7 @@ function PokemonCard({ item, onClick }: { item: PokemonItem; onClick: () => void
             {/* Give it a name */}
             <span className="text-sm font-medium capitalize">{item.name}</span>
 
-            {/* Show all other props */}
+            {/* Show types */}
             {item.types.length > 0 && (
                 <div className="flex flex-wrap items-center justify-center gap-1.5">
                     {item.types.map((typeName) => <TypeBadge key={typeName} typeName={typeName} />)}

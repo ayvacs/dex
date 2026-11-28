@@ -87,8 +87,7 @@ export function PokedexSkeleton({
 // Component Definition
 // ==============================
 
-// Server Component that fetches the Pokédex grouped by generation and renders the interactive grid
-// Server Component that fetches the Pokédex grouped by generation and renders the interactive grid
+// Server Component that fetches the Pokédex grouped by generation and renders the grid
 export async function Pokedex({
     columns = 6,
     className = "",
@@ -97,8 +96,9 @@ export async function Pokedex({
     columns = Math.max(1, Math.floor(columns));
     const { sections, error } = await fetchPokedexByGeneration();
 
+    // Show error text if there was an error
     if (error)
-        return <p className="p-4 text-center text-sm text-red-600">{error}</p>;
+        return <p className="p-4 text-center text-sm text-red-600">Error: {error}</p>;
 
     return <PokedexGrid
         sections={sections}

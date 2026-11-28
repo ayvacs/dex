@@ -11,7 +11,7 @@ This is an informative Pokédex viewer built with [Next.js](https://nextjs.org).
 
 The app gives you helpful information about Pokémon and serves as a resource for those who are either looking for information about their favourite Pokémon, or trying to catch 'em all in the newest game.
 
-We follow the [PokéAPI fair use policy](https://pokeapi.co/v2#fair-use-policy). We cache resources as much as possible, and request data from GitHub when it exists there. We try to be as respectful to PokéAPI as much as possible with the knowledge that they supply data for countless other sites and apps.
+We follow the [PokéAPI fair use policy](https://pokeapi.co/v2#fair-use-policy). We cache resources as much as possible, and request data from GitHub when it exists there. We try to be as respectful to PokéAPI as much as possible with the knowledge that they supply data for countless other sites and apps. Caching is achieved by building the site once per `git push`. This has the downside of meaning that upon API updates (i.e. when new Pokémon or games release) the build workflow must be run once (either manually or via `git push`) to reflect on the site.
 
 ## Build
 

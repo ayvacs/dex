@@ -1,4 +1,5 @@
 "use client";
+// One Pokémon sprite.
 
 
 // ==============================
