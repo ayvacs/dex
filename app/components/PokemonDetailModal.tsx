@@ -21,12 +21,18 @@ import {
 // ==============================
 
 /** Formats PokeAPI's 8-step `gender_rate` into a readable male/female split. */
-function formatGenderRatio(genderRate: number): string {
-    if (genderRate < 0) return "Genderless";
-    if (genderRate === 0) return "100% ♂";
-    if (genderRate === 8) return "100% ♀";
+function formatGenderRatio(genderRate: number): string
+{
+    if (genderRate < 0)
+        return "Genderless";
+    if (genderRate === 0)
+        return "100% ♂";
+    if (genderRate === 8)
+        return "100% ♀";
+
     const femalePct = (genderRate / 8) * 100;
     const malePct = 100 - femalePct;
+
     return `${malePct}% ♂ / ${femalePct}% ♀`;
 }
 
@@ -35,7 +41,7 @@ function formatGenderRatio(genderRate: number): string {
 // Component Definition
 // ==============================
 
-/** Popup card displaying useful and niche PokeAPI details for the selected Pokémon. */
+/** Popup card displaying useful and cool PokeAPI details for the selected Pokémon. */
 export function PokemonDetailModal({
     pokemon,
     onClose,
@@ -58,28 +64,26 @@ export function PokemonDetailModal({
         if (fontsReady) return;
         let isCancelled = false;
         document.fonts.ready.then(() => {
-            if (!isCancelled) {
+            if (!isCancelled)
                 setFontsReady(true);
-            }
         });
         return () => {
             isCancelled = true;
         };
     }, [fontsReady]);
 
+    // Effect for when the modal opens.
     useEffect(() => {
         let isCancelled = false;
 
         fetchPokemonDetail(pokemon.id, pokemon.imageUrl)
             .then((data) => {
-                if (!isCancelled) {
+                if (!isCancelled)
                     setDetail(data);
-                }
             })
             .catch((err) => {
-                if (!isCancelled) {
+                if (!isCancelled)
                     setError(err instanceof Error ? err.message : "Failed to load details");
-                }
             });
 
         return () => {
@@ -87,16 +91,18 @@ export function PokemonDetailModal({
         };
     }, [pokemon.id, pokemon.imageUrl]);
 
+    // Effect for when the modal closes.
     useEffect(() => {
-        function handleKeyDown(event: KeyboardEvent) {
-            if (event.key === "Escape") {
+        function handleKeyDown(event: KeyboardEvent)
+        {
+            if (event.key === "Escape")
                 onClose();
-            }
         }
         window.addEventListener("keydown", handleKeyDown);
         return () => window.removeEventListener("keydown", handleKeyDown);
     }, [onClose]);
 
+    // Build out the modal.
     const primaryStyle = getTypeStyle(pokemon.types[0]);
     const displayImage = detail
         ? isShiny && detail.shinyArtworkUrl
@@ -105,16 +111,16 @@ export function PokemonDetailModal({
         : null;
     const evYield = detail?.stats.filter((s) => s.effort > 0) ?? [];
 
-    function playCry() {
+    function playCry()
+    {
         if (!detail?.cryUrl) return;
         const audio = new Audio(detail.cryUrl);
         audio.volume = 0.35;
         audio.play().catch(() => {});
     }
 
-    if (!fontsReady) {
+    if (!fontsReady)
         return null;
-    }
 
     return (
         <div
@@ -143,6 +149,8 @@ export function PokemonDetailModal({
                                     className="inline-block h-3.5 w-24 animate-pulse rounded bg-black/15 dark:bg-white/15"
                                 />
                             )}
+
+                            // Add special badges for different purposes.
                             {detail?.isLegendary && (
                                 <span className="rounded bg-amber-500/20 px-1.5 py-0.5 text-[10px] text-amber-600 dark:text-amber-300">
                                     Legendary
@@ -159,6 +167,8 @@ export function PokemonDetailModal({
                                 </span>
                             )}
                         </div>
+
+                        // Closing button.
                         <button
                             type="button"
                             onClick={onClose}
@@ -167,8 +177,8 @@ export function PokemonDetailModal({
                             ×
                         </button>
                     </div>
-
                     <div className="mt-2 flex items-center gap-4">
+                        // Give it a container for the image.
                         <div
                             style={{ width: IMAGE_SIZE_PX, height: IMAGE_SIZE_PX }}
                             className="relative flex shrink-0 items-center justify-center">
@@ -187,6 +197,7 @@ export function PokemonDetailModal({
                         </div>
                         <div className="min-w-0 flex-1">
                             <h2 className="text-xl font-bold capitalize">{pokemon.name}</h2>
+                            // Container for the types badges.
                             <div className="mt-1.5 flex flex-wrap gap-1.5">
                                 {pokemon.types.map((typeName) => {
                                     const style = getTypeStyle(typeName);
@@ -203,6 +214,8 @@ export function PokemonDetailModal({
                                     );
                                 })}
                             </div>
+
+                            // These are buttons that toggle different behaviours.
                             {detail ? (
                                 <div className="mt-2 flex gap-2">
                                     {detail.shinyArtworkUrl && (
@@ -289,6 +302,8 @@ export function PokemonDetailModal({
                     )}
 
                     {detail && (
+                        // Wrap everything in a Fragment (invisible wrapper)
+                        // because we can only react one single dom element
                         <>
                             {detail.flavorText && (
                                 <p className="leading-relaxed opacity-85">{detail.flavorText}</p>

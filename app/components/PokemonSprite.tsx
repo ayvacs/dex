@@ -14,7 +14,8 @@ import { IMAGE_SIZE_PX } from "./pokedexData";
 // ==============================
 
 // Renders a strictly sized Pokémon sprite with an animated pulse placeholder until loaded
-export function PokemonSprite({ src, alt }: { src: string; alt: string }) {
+export function PokemonSprite({ src, alt }: { src: string; alt: string })
+{
     const [status, setStatus] = useState<"loading" | "loaded" | "error">("loading");
     const imgRef = useRef<HTMLImageElement | null>(null);
 

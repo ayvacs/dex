@@ -1,3 +1,8 @@
+// Data and functions,
+// this is .ts not .tsx because it doesn't contain any
+// visual content that gets rendered to the screen.
+
+
 // ==============================
 // Constants
 // ==============================
@@ -13,14 +18,16 @@ export const SKELETON_ROWS = 4;
 // ==============================
 
 // Visual theme colours for a Pokémon type badge and its card background
-export interface TypeStyle {
+export interface TypeStyle
+{
     badgeBg: string;
     badgeText: string;
     cardBg: string;
 }
 
 // Response shape from the PokeAPI `/type` index endpoint
-export interface TypeListResponse {
+export interface TypeListResponse
+{
     results: Array<{
         name: string;
         url: string;
@@ -28,24 +35,28 @@ export interface TypeListResponse {
 }
 
 // Minimal species reference returned inside a Pokédex entry.
-export interface PokemonSpeciesRef {
+export interface PokemonSpeciesRef
+{
     name: string;
     url: string;
 }
 
 // Single entry in the National Pokédex list.
-export interface PokedexEntry {
+export interface PokedexEntry
+{
     entry_number: number;
     pokemon_species: PokemonSpeciesRef;
 }
 
 // Response shape from the PokeAPI `/pokedex/1` endpoint.
-export interface PokedexApiResponse {
+export interface PokedexApiResponse
+{
     pokemon_entries: PokedexEntry[];
 }
 
 // Mapping of a Pokémon to a specific type slot (1 = primary, 2 = secondary).
-export interface TypePokemonEntry {
+export interface TypePokemonEntry
+{
     slot: number;
     pokemon: {
         name: string;
@@ -54,13 +65,15 @@ export interface TypePokemonEntry {
 }
 
 // Response shape from an individual PokeAPI `/type/{name}` endpoint.
-export interface TypeApiResponse {
+export interface TypeApiResponse
+{
     name: string;
     pokemon: TypePokemonEntry[];
 }
 
 // Normalized Pokémon data rendered in each Pokédex cell.
-export interface PokemonItem {
+export interface PokemonItem
+{
     id: string;
     dexNumber: number;
     name: string;
@@ -69,7 +82,8 @@ export interface PokemonItem {
 }
 
 // Detailed useful & niche Pokémon data fetched on demand for the popup card.
-export interface PokemonDetail {
+export interface PokemonDetail
+{
     artworkUrl: string;
     shinyArtworkUrl: string | null;
     cryUrl: string | null;
@@ -92,7 +106,8 @@ export interface PokemonDetail {
 }
 
 // Result wrapper returned by `fetchPokedex` so Suspense never receives an unhandled rejection.
-export interface PokedexLoadResult {
+export interface PokedexLoadResult
+{
     items: PokemonItem[];
     error: string | null;
 }
@@ -102,7 +117,8 @@ export interface PokedexLoadResult {
 // Data
 // ==============================
 
-export const TYPE_STYLES: Record<string, TypeStyle> = {
+export const TYPE_STYLES: Record<string, TypeStyle> =
+{
     normal:     { badgeBg: "#6b6b56", badgeText: "#ffffff", cardBg: "rgba(107, 107, 86, 0.16)"  },
     fire:       { badgeBg: "#b8402e", badgeText: "#ffffff", cardBg: "rgba(184, 64, 46, 0.16)"   },
     water:      { badgeBg: "#3566b8", badgeText: "#ffffff", cardBg: "rgba(53, 102, 184, 0.16)"  },
@@ -129,17 +145,20 @@ export const TYPE_STYLES: Record<string, TypeStyle> = {
 // ==============================
 
 // Extracts the trailing numeric ID segment from a PokeAPI resource URL.
-export function extractIdFromUrl(url: string): string | undefined {
+export function extractIdFromUrl(url: string): string | undefined
+{
     return url.split("/").filter(Boolean).pop();
 }
 
-// Builds the PokeAPI sprite image URL for a given Pokémon species ID.
-export function getSpriteUrl(speciesId: string): string {
+// Gets the PokeAPI sprite image URL for a given Pokémon species ID.
+export function getSpriteUrl(speciesId: string): string
+{
     return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${speciesId}.png`;
 }
 
-// Computes an unsigned 32-bit FNV-1a hash for deterministic fallback colour generation.
-export function hashString(value: string): number {
+// Computes an unsigned 32-bit FNV-1a hash for fallback colour generation.
+export function hashString(value: string): number
+{
     let hash = 2166136261;
     for (let i = 0; i < value.length; i++) {
         hash ^= value.charCodeAt(i);
@@ -148,20 +167,19 @@ export function hashString(value: string): number {
     return hash >>> 0;
 }
 
-// Returns the badge and card background colours for a type name, with a deterministic fallback.
-export function getTypeStyle(typeName?: string): TypeStyle {
-    if (!typeName) {
+// Returns the badge and card background colours for a type name, with a fallback.
+export function getTypeStyle(typeName?: string): TypeStyle
+{
+    if (!typeName)
         return {
             badgeBg: "hsl(220 10% 38%)",
             badgeText: "#ffffff",
             cardBg: "hsl(220 10% 45% / 0.12)",
         };
-    }
 
     const mapped = TYPE_STYLES[typeName.toLowerCase()];
-    if (mapped) {
+    if (mapped)
         return mapped;
-    }
 
     const hue = hashString(typeName) % 360;
     return {
@@ -175,19 +193,19 @@ export function getTypeStyle(typeName?: string): TypeStyle {
  * Fetches all Pokémon types from the `/type` endpoint and indexes them by Pokémon ID.
  * Fetching per-type (~20 requests) avoids making 1,000+ individual `/pokemon/{id}` requests.
  */
-export async function fetchTypesByPokemonId(): Promise<Map<string, string[]>> {
+export async function fetchTypesByPokemonId(): Promise<Map<string, string[]>>
+{
     const listResponse = await fetch(TYPE_LIST_URL, { method: "GET", cache: "force-cache" });
-    if (!listResponse.ok) {
+    if (!listResponse.ok)
         throw new Error(`Failed to fetch type list (${listResponse.status})`);
-    }
+
     const typeList: TypeListResponse = await listResponse.json();
 
     const typeResponses = await Promise.all(
         (typeList.results ?? []).map(async ({ name, url }) => {
             const response = await fetch(url, { method: "GET", cache: "force-cache" });
-            if (!response.ok) {
+            if (!response.ok)
                 throw new Error(`Failed to fetch type ${name} (${response.status})`);
-            }
             return (await response.json()) as TypeApiResponse;
         })
     );
@@ -197,7 +215,8 @@ export async function fetchTypesByPokemonId(): Promise<Map<string, string[]>> {
     for (const typeData of typeResponses) {
         for (const entry of typeData.pokemon ?? []) {
             const id = extractIdFromUrl(entry.pokemon.url);
-            if (!id) continue;
+            if (!id)
+                continue;
             const list = slotMap.get(id) ?? [];
             list.push({ slot: entry.slot, type: typeData.name });
             slotMap.set(id, list);
@@ -213,20 +232,21 @@ export async function fetchTypesByPokemonId(): Promise<Map<string, string[]>> {
             entries.map((e) => e.type)
         );
     }
+
     return result;
 }
 
 // Fetches the National Pokédex entries and merges them with their resolved types.
-export async function fetchPokedex(): Promise<PokedexLoadResult> {
+export async function fetchPokedex(): Promise<PokedexLoadResult>
+{
     try {
         const [pokedexResponse, typesById] = await Promise.all([
             fetch(POKEDEX_URL, { method: "GET", cache: "force-cache" }),
             fetchTypesByPokemonId(),
         ]);
 
-        if (!pokedexResponse.ok) {
+        if (!pokedexResponse.ok)
             throw new Error(`Failed to fetch Pokédex (${pokedexResponse.status})`);
-        }
 
         const data: PokedexApiResponse = await pokedexResponse.json();
         const items: PokemonItem[] = (data.pokemon_entries ?? []).map((entry) => {
@@ -254,28 +274,32 @@ export async function fetchPokedex(): Promise<PokedexLoadResult> {
 let pokedexPromise: Promise<PokedexLoadResult> | null = null;
 
 // Returns the cached Pokédex fetch promise, initializing it on first call.
-export function getPokedexPromise(): Promise<PokedexLoadResult> {
-    if (!pokedexPromise) {
+export function getPokedexPromise(): Promise<PokedexLoadResult>
+{
+    if (!pokedexPromise)
         pokedexPromise = fetchPokedex();
-    }
     return pokedexPromise;
 }
 
-const STAT_LABELS: Record<string, string> = {
-    hp: "HP",
-    attack: "Atk",
-    defense: "Def",
-    "special-attack": "SpA",
-    "special-defense": "SpD",
-    speed: "Spe",
+// Convert internal labels to external user-facing labels for stats
+const STAT_LABELS: Record<string, string> =
+{
+    hp:                 "HP",
+    attack:             "Atk",
+    defense:            "Def",
+    "special-attack":   "SpA",
+    "special-defense":  "SpD",
+    speed:              "Spe",
 };
 
 const detailCache = new Map<string, Promise<PokemonDetail>>();
 
 // Fetches useful and niche details for a single Pokémon on demand, with in-memory caching.
-export function fetchPokemonDetail(id: string, fallbackSpriteUrl: string): Promise<PokemonDetail> {
+export function fetchPokemonDetail(id: string, fallbackSpriteUrl: string): Promise<PokemonDetail>
+{
     const cached = detailCache.get(id);
-    if (cached) return cached;
+    if (cached)
+        return cached;
 
     const promise = (async () => {
         const [pokemonRes, speciesRes] = await Promise.all([
@@ -283,9 +307,8 @@ export function fetchPokemonDetail(id: string, fallbackSpriteUrl: string): Promi
             fetch(`https://pokeapi.co/api/v2/pokemon-species/${id}/`),
         ]);
 
-        if (!pokemonRes.ok || !speciesRes.ok) {
+        if (!pokemonRes.ok || !speciesRes.ok)
             throw new Error("Failed to load Pokémon details");
-        }
 
         const [pokemonData, speciesData] = await Promise.all([
             pokemonRes.json(),
