@@ -9,6 +9,8 @@
 
 export const POKEDEX_URL = "https://pokeapi.co/api/v2/pokedex/1/";
 export const TYPE_LIST_URL = "https://pokeapi.co/api/v2/type/";
+export const GENERATION_LIST_URL = "https://pokeapi.co/api/v2/generation/";
+export const REVALIDATE_SECONDS = 86400;
 export const IMAGE_SIZE_PX = 96;
 export const SKELETON_ROWS = 4;
 
@@ -112,6 +114,48 @@ export interface PokedexLoadResult
     error: string | null;
 }
 
+// Response shape from the PokeAPI `/generation` index endpoint.
+export interface GenerationListResponse
+{
+    results: Array<{
+        name: string;
+        url: string;
+    }>;
+}
+
+// Response shape from an individual PokeAPI `/generation/{id}` endpoint.
+export interface GenerationApiResponse
+{
+    id: number;
+    name: string;
+    names: Array<{
+        name: string;
+        language: {
+            name: string;
+        };
+    }>;
+    main_region: {
+        name: string;
+    } | null;
+    pokemon_species: PokemonSpeciesRef[];
+}
+
+// A single generation section with its Pokémon sorted by National Dex number.
+export interface GenerationSection
+{
+    id: number;
+    name: string;
+    region: string | null;
+    items: PokemonItem[];
+}
+
+// Result wrapper returned by `fetchPokedexByGeneration`.
+export interface PokedexSectionsLoadResult
+{
+    sections: GenerationSection[];
+    error: string | null;
+}
+
 
 // ==============================
 // Data
@@ -195,7 +239,10 @@ export function getTypeStyle(typeName?: string): TypeStyle
  */
 export async function fetchTypesByPokemonId(): Promise<Map<string, string[]>>
 {
-    const listResponse = await fetch(TYPE_LIST_URL, { method: "GET", cache: "force-cache" });
+    const listResponse = await fetch(TYPE_LIST_URL, {
+        method: "GET",
+        next: { revalidate: REVALIDATE_SECONDS },
+    });
     if (!listResponse.ok)
         throw new Error(`Failed to fetch type list (${listResponse.status})`);
 
@@ -203,7 +250,10 @@ export async function fetchTypesByPokemonId(): Promise<Map<string, string[]>>
 
     const typeResponses = await Promise.all(
         (typeList.results ?? []).map(async ({ name, url }) => {
-            const response = await fetch(url, { method: "GET", cache: "force-cache" });
+            const response = await fetch(url, {
+                method: "GET",
+                next: { revalidate: REVALIDATE_SECONDS },
+            });
             if (!response.ok)
                 throw new Error(`Failed to fetch type ${name} (${response.status})`);
             return (await response.json()) as TypeApiResponse;
@@ -241,7 +291,10 @@ export async function fetchPokedex(): Promise<PokedexLoadResult>
 {
     try {
         const [pokedexResponse, typesById] = await Promise.all([
-            fetch(POKEDEX_URL, { method: "GET", cache: "force-cache" }),
+            fetch(POKEDEX_URL, {
+                method: "GET",
+                next: { revalidate: REVALIDATE_SECONDS },
+            }),
             fetchTypesByPokemonId(),
         ]);
 
@@ -279,6 +332,101 @@ export function getPokedexPromise(): Promise<PokedexLoadResult>
     if (!pokedexPromise)
         pokedexPromise = fetchPokedex();
     return pokedexPromise;
+}
+
+// Formats a generation's English display name from its PokeAPI metadata.
+function formatGenerationName(gen: GenerationApiResponse): string
+{
+    const english = (gen.names ?? []).find((entry) => entry.language.name === "en")?.name;
+    if (english)
+        return english;
+
+    // Replace all dashes with spaces
+    return gen.name.replace(/-/g, " ");
+}
+
+// Fetches all generations dynamically from PokeAPI, sorted by generation ID.
+async function fetchGenerations(): Promise<GenerationApiResponse[]>
+{
+    const listResponse = await fetch(GENERATION_LIST_URL, {
+        method: "GET",
+        next: { revalidate: REVALIDATE_SECONDS },
+    });
+    if (!listResponse.ok)
+        throw new Error(`Failed to fetch generation list (${listResponse.status})`);
+
+    const listData: GenerationListResponse = await listResponse.json();
+    const generations = await Promise.all(
+        (listData.results ?? []).map(async ({ name, url }) => {
+            const response = await fetch(url, {
+                method: "GET",
+                next: { revalidate: REVALIDATE_SECONDS },
+            });
+            if (!response.ok)
+                throw new Error(`Failed to fetch ${name} (${response.status})`);
+            return (await response.json()) as GenerationApiResponse;
+        })
+    );
+
+    return generations.sort((a, b) => a.id - b.id);
+}
+
+// Fetches the Pokédex grouped into sections for each generation released in PokeAPI.
+export async function fetchPokedexByGeneration(): Promise<PokedexSectionsLoadResult>
+{
+    try {
+        const [pokedexResult, generations, typesById] = await Promise.all([
+            fetchPokedex(),
+            fetchGenerations(),
+            fetchTypesByPokemonId(),
+        ]);
+
+        if (pokedexResult.error)
+            return { sections: [], error: pokedexResult.error };
+
+        const itemsById = new Map(pokedexResult.items.map((item) => [item.id, item]));
+
+        const sections: GenerationSection[] = generations
+            .map((gen) => {
+                const items = (gen.pokemon_species ?? [])
+                    .map((species): PokemonItem | null => {
+                        const speciesId = extractIdFromUrl(species.url);
+                        if (!speciesId)
+                            return null;
+
+                        const existing = itemsById.get(speciesId);
+                        if (existing)
+                            return existing;
+
+                        const dexNumber = Number(speciesId);
+                        return {
+                            id: speciesId,
+                            dexNumber: Number.isFinite(dexNumber) ? dexNumber : 0,
+                            name: species.name,
+                            imageUrl: getSpriteUrl(speciesId),
+                            types: typesById.get(speciesId) ?? [],
+                        };
+                    })
+                    .filter((item): item is PokemonItem => item !== null)
+                    .sort((a, b) => a.dexNumber - b.dexNumber);
+
+                return {
+                    id: gen.id,
+                    name: formatGenerationName(gen),
+                    region: gen.main_region?.name ?? null,
+                    items,
+                };
+            })
+            .filter((section) => section.items.length > 0);
+
+        return { sections, error: null };
+    } catch (err) {
+        console.error(err);
+        return {
+            sections: [],
+            error: err instanceof Error ? err.message : "Failed to load Pokédex generations",
+        };
+    }
 }
 
 // Convert internal labels to external user-facing labels for stats

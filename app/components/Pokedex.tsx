@@ -7,7 +7,7 @@
 // ==============================
 
 import { PokedexGrid } from "./PokedexGrid";
-import { IMAGE_SIZE_PX, SKELETON_ROWS, fetchPokedex } from "./pokedexData";
+import { IMAGE_SIZE_PX, SKELETON_ROWS, fetchPokedexByGeneration } from "./pokedexData";
 
 
 // ==============================
@@ -87,19 +87,19 @@ export function PokedexSkeleton({
 // Component Definition
 // ==============================
 
-// Server Component that fetches the National Pokédex at build time and renders the interactive grid
+// Server Component that fetches the Pokédex grouped by generation and renders the interactive grid
 export async function Pokedex({
     columns = 6,
     className = "",
 }: PokedexProps) {
     columns = Math.max(1, Math.floor(columns));
-    const { items: pokemon, error } = await fetchPokedex();
+    const { sections, error } = await fetchPokedexByGeneration();
 
     if (error)
         return <p className="p-4 text-center text-sm text-red-600">{error}</p>;
 
     return <PokedexGrid
-        pokemon={pokemon}
+        sections={sections}
         columns={columns}
         className={className}/>;
 }
