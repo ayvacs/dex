@@ -30,20 +30,20 @@ export interface PokedexProps
 function SkeletonCell()
 {
     return (<td className="border-0 bg-transparent p-2 text-center align-top">
-        // Give it the pulse animation.
+        {/* Give it the pulse animation. */}
         <div className="flex animate-pulse flex-col items-center justify-center gap-1.5 rounded-xl bg-neutral-100 p-3 dark:bg-neutral-900">
-            // Give it a container for a pokedex number.
+            {/* Give it a container for a pokedex number. */}
             <div className="h-3.5 w-12 rounded bg-neutral-200 dark:bg-neutral-800" />
 
-            // Give it a container for an image.
+            {/* Give it a container for an image. */}
             <div
                 style={{ width: IMAGE_SIZE_PX, height: IMAGE_SIZE_PX }}
                 className="shrink-0 rounded-md bg-neutral-200 dark:bg-neutral-800" />
             
-            // Give it a container for a name.
+            {/* Give it a container for a name. */}
             <div className="h-4 w-20 rounded bg-neutral-200 dark:bg-neutral-800" />
 
-            // Give a container for type badges.
+            {/* Give a container for type badges. */}
             <div className="flex gap-1.5">
                 <div className="h-5 w-14 rounded-full bg-neutral-200 dark:bg-neutral-800" />
             </div>
@@ -55,7 +55,7 @@ function SkeletonCell()
 function SkeletonRow({ columns }: { columns: number })
 {
     return (<tr className="border-0 bg-transparent">
-        // Build each cell.
+        {/* Build each cell. */}
         {Array.from({ length: columns }, (_, i) =>
             <SkeletonCell key={i} />
         )}

@@ -39,18 +39,18 @@ function PokemonCard({ item, onClick }: { item: PokemonItem; onClick: () => void
         style={{ backgroundColor: primaryStyle.cardBg }}
         className="flex w-full cursor-pointer flex-col items-center justify-center gap-1.5 rounded-xl p-3 transition-transform duration-150 hover:scale-[1.02] focus-visible:outline-2 focus-visible:outline-offset-2">
 
-            // Give it a dex number
+            {/* Give it a dex number */}
             <span className="text-xs font-semibold opacity-70">
                 #{String(item.dexNumber).padStart(4, "0")}
             </span>
 
-            // Give it a sprite
+            {/* Give it a sprite */}
             <PokemonSprite src={item.imageUrl} alt={item.name} />
 
-            // Give it a name
+            {/* Give it a name */}
             <span className="text-sm font-medium capitalize">{item.name}</span>
 
-            // Show all other props
+            {/* Show all other props */}
             {item.types.length > 0 && (
                 <div className="flex flex-wrap items-center justify-center gap-1.5">
                     {item.types.map((typeName) => <TypeBadge key={typeName} typeName={typeName} />)}
@@ -101,7 +101,7 @@ export function PokedexGrid({
         // wrap everything in a Fragment (invisible wrapper)
         // Because we can only react one single dom element
         <>
-            // This is the table that always shows in the body.
+            {/* This is the table that always shows in the body. */}
             <table className={`w-full table-fixed border-collapse border-0 bg-transparent ${className}`.trim()}>
                 <tbody>
                     {Array.from({ length: rowCount }, (_, i) => (
@@ -110,7 +110,7 @@ export function PokedexGrid({
                 </tbody>
             </table>
 
-            // This is the detail modal that shows when we want it to.
+            {/* This is the detail modal that shows when we want it to. */}
             {selected && (
                 <PokemonDetailModal
                     key={selected.id}
