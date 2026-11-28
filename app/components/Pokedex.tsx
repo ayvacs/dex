@@ -88,10 +88,12 @@ export function PokedexSkeleton({
 // ==============================
 
 // Server Component that fetches the Pokédex grouped by generation and renders the interactive grid
+// Server Component that fetches the Pokédex grouped by generation and renders the interactive grid
 export async function Pokedex({
     columns = 6,
     className = "",
-}: PokedexProps) {
+}: PokedexProps)
+{
     columns = Math.max(1, Math.floor(columns));
     const { sections, error } = await fetchPokedexByGeneration();
 
